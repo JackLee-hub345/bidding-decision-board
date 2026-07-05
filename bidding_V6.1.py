@@ -225,20 +225,29 @@ if st.button("🚀 启动 100,000 次海量兵棋推演", use_container_width=Tr
             main_bids = np.array([peak_val])
             
         # 侧翼掩护逻辑保持不变
+      # 侧翼掩护逻辑：【全新升级】废弃依赖自然概率边界，改为以主力阵型为锚点，强制向外按步距展开！
         flank_bids = []
         if num_flank_units > 0:
+            # 侧翼掩护的步距，直接采用主力防废标步距 (保证全阵型火力网孔距一致，防串标)
+            f_step = min_main_step 
+            
             if "左侧" in flank_strategy:
-                f_min, f_max = abs_min, max(abs_min, core_min - 0.2)
-                flank_bids = np.linspace(f_min, f_max, num_flank_units) if num_flank_units > 1 else np.array([(f_min + f_max)/2])
+                left_units = num_flank_units
+                right_units = 0
             elif "右侧" in flank_strategy:
-                f_min, f_max = min(abs_max, core_max + 0.2), abs_max
-                flank_bids = np.linspace(f_min, f_max, num_flank_units) if num_flank_units > 1 else np.array([(f_min + f_max)/2])
-            else: 
+                left_units = 0
+                right_units = num_flank_units
+            else: # 双侧均衡
                 left_units = num_flank_units // 2
                 right_units = num_flank_units - left_units
-                lbids = np.linspace(abs_min, max(abs_min, core_min - 0.2), left_units) if left_units > 0 else []
-                rbids = np.linspace(min(abs_max, core_max + 0.2), abs_max, right_units) if right_units > 0 else []
-                flank_bids = np.concatenate([lbids, rbids])
+                
+            # 向左侧梯次推演外扩 (例如：core_min - 0.4, core_min - 0.2)
+            lbids = core_min - np.arange(left_units, 0, -1) * f_step if left_units > 0 else []
+            
+            # 向右侧梯次推演外扩 (例如：core_max + 0.2, core_max + 0.4)
+            rbids = core_max + np.arange(1, right_units + 1) * f_step if right_units > 0 else []
+            
+            flank_bids = np.concatenate([lbids, rbids])
                 
         fleet_positions = np.sort(np.concatenate([main_bids, np.array(flank_bids) if len(flank_bids)>0 else []]))
 
