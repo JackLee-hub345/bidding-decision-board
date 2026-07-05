@@ -1,8 +1,21 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
+import os
+import shutil
 from matplotlib.colors import LinearSegmentedColormap
+
+# =====================================================================
+# 🚨 核心修复：强制清除云端 Matplotlib 的顽固字体缓存，解决豆腐块乱码
+# =====================================================================
+cache_dir = matplotlib.get_cachedir()
+if os.path.exists(cache_dir):
+    try:
+        shutil.rmtree(cache_dir)
+    except Exception:
+        pass
 
 # ----------------- 页面基础配置与深度美化 -----------------
 st.set_page_config(page_title="投标报价智能决策看板 v6.2", layout="wide")
@@ -17,13 +30,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
+# 告诉 Matplotlib 优先使用我们刚装的文泉驿字体
+plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'WenQuanYi Micro Hei', 'SimHei', 'Microsoft YaHei', 'Arial Unicode MS'] 
 plt.rcParams['axes.unicode_minus'] = False 
 
 st.title("📊 投标报价智能决策看板 v6.2")
 st.write("核心算法：全景滑动雷达扫描 + 多梯队弹性网格布防 + 强制防废标拓宽 + 10万次蒙特卡洛联合火力验证。")
 st.markdown("---")
-
 # ----------------- 1. 核心战略参数与阵型拆解 -----------------
 st.header("1. 🎯 正投舰队布防策略与 K 值规则")
 col_base1, col_base2 = st.columns([1.5, 1])
